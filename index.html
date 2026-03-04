@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAVY DATABASE | ฐานข้อมูลกองทัพเรือ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700;800&display=swap');
+        body { 
+            font-family: 'Sarabun', sans-serif; 
+            background-color: #020617; /* Navy Dark */
+        }
+        .navy-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid #1e293b;
+        }
+        .navy-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px -5px rgba(59, 130, 246, 0.2);
+        }
+        .img-container {
+            background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+        }
+    </style>
+</head>
+<body class="text-slate-200 min-h-screen p-4 md:p-10">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="text-center mb-10 border-b border-slate-800 pb-10">
+            <div class="inline-block bg-blue-600 text-white text-[10px] font-bold px-3 py-1 rounded mb-4 tracking-[0.3em] uppercase">
+                Restricted Area
+            </div>
+            <h1 class="text-4xl md:text-6xl font-black text-white mb-2 tracking-tighter uppercase italic">
+                ⚓ Navy Personnel
+            </h1>
+            <p class="text-slate-500 font-mono text-xs tracking-widest uppercase">Royal Thai Navy Roblox Database System</p>
+        </header>
+
+        <div class="mb-12 space-y-8">
+            <div class="max-w-xl mx-auto">
+                <div class="relative">
+                    <input type="text" id="searchInput" placeholder="กรอก Username เพื่อค้นหา..." 
+                        class="w-full bg-slate-900/50 border border-slate-700 rounded-2xl px-6 py-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-2xl">
+                    <span class="absolute right-5 top-4 text-slate-500">🔍</span>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-2" id="filter-area">
+                <button onclick="filterByCat('ทั้งหมด')" id="btn-all"
+                    class="filter-btn px-6 py-2 bg-blue-600 text-white rounded-full font-bold text-sm shadow-lg transition active:scale-95">
+                    ทั้งหมด
+                </button>
+            </div>
+        </div>
+
+        <div id="loader" class="text-center py-20">
+            <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-blue-500 border-t-transparent"></div>
+            <p class="mt-4 text-slate-500 font-mono text-xs animate-pulse">ACCESSING ENCRYPTED MAINFRAME...</p>
+        </div>
+
+        <div id="list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            </div>
+    </div>
+
+    <script>
+        // API URL จากที่คุณให้มา
+        const API_URL = 'https://api.sheetbest.com/sheets/ea6740dc-6cf4-4153-a120-f63e9e254542';
+        
+        let allPersonnel = [];
+
+        async function startSystem() {
+            try {
+                const response = await fetch(API_URL);
+                allPersonnel = await response.json();
+                
+                generateFilterButtons();
+                displayMembers(allPersonnel);
+                
+                document.getElementById('loader').classList.add('hidden');
+            } catch (err) {
+                console.error("System Error:", err);
+                document.getElementById('loader').innerHTML = `<p class="text-red-500 font-bold">⚠️ CONNECTION FAILED: DATABASE OFFLINE</p>`;
+            }
+        }
+
+        // 1. สร้างปุ่มแยกหมวดหมู่อัตโนมัติ
+        function generateFilterButtons() {
+            const container = document.getElementById('filter-area');
+            const categories = [...new Set(allPersonnel.map(p => p['หมวดต่างๆ']))].filter(c => c);
+            
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.innerText = cat;
+                btn.className = "filter-btn px-6 py-2 bg-slate-900 text-slate-400 border border-slate-800 rounded-full font-bold text-sm hover:border-blue-500 hover:text-white transition active:scale-95";
+                btn.onclick = () => filterByCat(cat);
+                container.appendChild(btn);
+            });
+        }
+
+        // 2. ฟังก์ชันกรองข้อมูล
+        function filterByCat(catName) {
+            // ปรับสีปุ่มที่ถูกเลือก
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.replace('bg-blue-600', 'bg-slate-900');
+                btn.classList.replace('text-white', 'text-slate-400');
+            });
+
+            const filtered = catName === 'ทั้งหมด' 
+                ? allPersonnel 
+                : allPersonnel.filter(p => p['หมวดต่างๆ'] === catName);
+            
+            displayMembers(filtered);
+        }
+
+        // 3. ฟังก์ชันการแสดงผลการ์ด
+        function displayMembers(data) {
+            const grid = document.getElementById('list-container');
+            
+            if (data.length === 0) {
+                grid.innerHTML = `<p class="col-span-full text-center text-slate-600 py-20 italic">ไม่พบรายชื่อในหมวดหมู่ข้อมูลนี้</p>`;
+                return;
+            }
+
+            grid.innerHTML = data.map(m => {
+                const photo = m['รูปภาพ (URL)'] || 'https://via.placeholder.com/400x600/0f172a/3b82f6?text=NO+IMAGE';
+                
+                return `
+                <div class="navy-card bg-slate-900/40 rounded-[2rem] overflow-hidden flex flex-col group">
+                    <div class="img-container w-full aspect-[3/4] flex items-center justify-center p-4 overflow-hidden">
+                        <img src="${photo}" 
+                             class="w-full h-full object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] group-hover:scale-110 transition-transform duration-700" 
+                             alt="${m['Username roblox']}">
+                    </div>
+                    
+                    <div class="p-6 text-center">
+                        <div class="mb-2">
+                            <span class="text-[9px] font-black bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded uppercase tracking-widest">
+                                ${m['หมวดต่างๆ']}
+                            </span>
+                        </div>
+                        
+                        <h2 class="text-xl font-bold text-white mb-1 tracking-tight group-hover:text-blue-400 transition-colors">
+                            ${m['Username roblox']}
+                        </h2>
+                        
+                        <p class="text-blue-500 font-bold text-xs mb-1 uppercase tracking-wide">${m['ตำแหน่ง']}</p>
+                        <p class="text-slate-500 text-[10px] uppercase">${m['กระทรวง']}</p>
+                        
+                        <div class="mt-6 pt-4 border-t border-slate-800/50 flex justify-between items-center px-2">
+                             <div class="flex flex-col items-start">
+                                <span class="text-[8px] text-slate-600 font-mono">STATUS</span>
+                                <span class="text-[9px] text-green-500 font-bold tracking-tighter italic">ONLINE</span>
+                             </div>
+                             <div class="flex flex-col items-end">
+                                <span class="text-[8px] text-slate-600 font-mono">RANK</span>
+                                <span class="text-[9px] text-slate-400 font-bold tracking-tighter italic">VERIFIED</span>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        // ระบบค้นหา Real-time
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const results = allPersonnel.filter(p => 
+                p['Username roblox'].toLowerCase().includes(query) ||
+                p['ตำแหน่ง'].toLowerCase().includes(query)
+            );
+            displayMembers(results);
+        });
+
+        // รันระบบ
+        startSystem();
+    </script>
+</body>
+</html>
