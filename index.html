@@ -33,7 +33,7 @@
                 Restricted Area
             </div>
             <h1 class="text-4xl md:text-6xl font-black text-white mb-2 tracking-tighter uppercase italic">
-                🪖⚓🚓 Armed Forces P Personnel
+                ⚓ Armed Forces P Personnel
             </h1>
             <p class="text-slate-500 font-mono text-xs tracking-widest uppercase"> Royal Thai Armed Forces P Roblox Database System</p>
         </header>
@@ -64,15 +64,17 @@
             </div>
     </div>
 
-    <script>
-        // API URL จากที่คุณให้มา
-        const API_URL = 'https://api.sheetbest.com/sheets/ea6740dc-6cf4-4153-a120-f63e9e254542';
-        
+    <script> 
+ 
+        // เปลี่ยน URL นี้เป็น URL CSV จาก Google Sheets ของคุณ
+
+      ) const sheet_url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhI3z8Rn1oD8aCVHuv2Ff0IlsxWq8PyfciiUzXHZvrJ3cOjEIOb0TGYUOK8f3MRrJRVcwtVB2sfqSi/pub?output=csv';
+
         let allPersonnel = [];
 
         async function startSystem() {
             try {
-                const response = await fetch(API_URL);
+                const response = await fetch(sheet_URL);
                 allPersonnel = await response.json();
                 
                 generateFilterButtons();
